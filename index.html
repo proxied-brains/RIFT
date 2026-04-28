@@ -1,172 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Void</title>
-  <link rel="stylesheet" href="/css/main.css">
-</head>
-<body>
+import express from "express";
+import http from "http";
+import path from "path";
+import { WebSocketServer } from "ws";
+import bcrypt from "bcryptjs";
+import { createBareServer } from "@tomphttp/bare-server-node";
 
-<nav class="nav">
-  <a href="/" class="nav-logo">V<span>.</span>OID</a>
-  <a href="/" class="nav-link active"><span class="nav-icon">⬡</span> Home</a>
-  <a href="/proxy.html" class="nav-link"><span class="nav-icon">🌐</span> Proxy</a>
-  <a href="/games.html" class="nav-link"><span class="nav-icon">🎮</span> Games</a>
-  <a href="/tools.html" class="nav-link"><span class="nav-icon">⚙</span> Tools</a>
-  <a href="/chat.html" class="nav-link"><span class="nav-icon">💬</span> Chat</a>
-  <a href="/settings.html" class="nav-link"><span class="nav-icon">◈</span> Settings</a>
-  <a href="/login.html" class="nav-link" id="login-nav"><span class="nav-icon">⬡</span> Admin</a>
-</nav>
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+const bareServer = createBareServer("/bare/");
 
-<main class="page">
-  <div class="hero fade-up">
-    <div class="hero-badge">◈ your space. your rules.</div>
-    <h1>V<span class="dim">.</span><span class="acc">OID</span></h1>
-    <p class="hero-sub">// proxy · games · tools · chat — all in one place</p>
-  </div>
+const PORT = process.env.PORT || 8080;
 
-  <div class="search-wrap fade-up fade-up-1">
-    <input class="search-bar" id="search-input" placeholder="Search or enter a URL..." autocomplete="off" />
-    <button class="search-btn" id="search-btn">→</button>
-  </div>
+/* ---------------- STATIC FILES ---------------- */
+app.use(express.static(path.join(process.cwd(), "public")));
 
-  <!-- Quick links -->
-  <div class="quick-links fade-up fade-up-2">
-    <a href="https://www.youtube.com" class="quick-link" onclick="goProxy(event, 'https://www.youtube.com')">
-      <span class="qi">▶</span> YouTube
-    </a>
-    <a href="https://chatgpt.com" class="quick-link" onclick="goProxy(event, 'https://chatgpt.com')">
-      <span class="qi">◎</span> ChatGPT
-    </a>
-    <a href="https://claude.ai" class="quick-link" onclick="goProxy(event, 'https://claude.ai')">
-      <span class="qi">◈</span> Claude
-    </a>
-    <a href="https://open.spotify.com" class="quick-link" onclick="goProxy(event, 'https://open.spotify.com')">
-      <span class="qi">♪</span> Spotify
-    </a>
-    <a href="https://music.apple.com" class="quick-link" onclick="goProxy(event, 'https://music.apple.com')">
-      <span class="qi">♫</span> Apple Music
-    </a>
-    <a href="https://www.tiktok.com" class="quick-link" onclick="goProxy(event, 'https://www.tiktok.com')">
-      <span class="qi">◐</span> TikTok
-    </a>
-    <a href="https://discord.com/app" class="quick-link" onclick="goProxy(event, 'https://discord.com/app')">
-      <span class="qi">⬡</span> Discord
-    </a>
-    <a href="https://www.reddit.com" class="quick-link" onclick="goProxy(event, 'https://www.reddit.com')">
-      <span class="qi">◉</span> Reddit
-    </a>
-  </div>
+app.get("*", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public", "index.html"));
+});
 
-  <!-- Apps section -->
-  <div class="fade-up fade-up-3" style="margin-bottom: 40px">
-    <div class="section-title">apps</div>
-    <div class="grid grid-auto" style="grid-template-columns: repeat(auto-fill, minmax(120px, 1fr))">
-      <div class="app-card" onclick="goProxy(null, 'https://www.youtube.com')">
-        <span class="app-icon">▶</span> YouTube
-      </div>
-      <div class="app-card" onclick="goProxy(null, 'https://chatgpt.com')">
-        <span class="app-icon">◎</span> ChatGPT
-      </div>
-      <div class="app-card" onclick="goProxy(null, 'https://claude.ai')">
-        <span class="app-icon">◈</span> Claude
-      </div>
-      <div class="app-card" onclick="goProxy(null, 'https://open.spotify.com')">
-        <span class="app-icon">♪</span> Spotify
-      </div>
-      <div class="app-card" onclick="goProxy(null, 'https://music.apple.com')">
-        <span class="app-icon">♫</span> Apple Music
-      </div>
-      <div class="app-card" onclick="goProxy(null, 'https://www.tiktok.com')">
-        <span class="app-icon">◐</span> TikTok
-      </div>
-      <div class="app-card" onclick="goProxy(null, 'https://www.instagram.com')">
-        <span class="app-icon">◑</span> Instagram
-      </div>
-      <div class="app-card" onclick="goProxy(null, 'https://twitter.com')">
-        <span class="app-icon">✕</span> X / Twitter
-      </div>
-      <div class="app-card" onclick="goProxy(null, 'https://discord.com/app')">
-        <span class="app-icon">⬡</span> Discord
-      </div>
-      <div class="app-card" onclick="goProxy(null, 'https://www.twitch.tv')">
-        <span class="app-icon">◈</span> Twitch
-      </div>
-      <div class="app-card" onclick="goProxy(null, 'https://www.netflix.com')">
-        <span class="app-icon">N</span> Netflix
-      </div>
-      <div class="app-card" onclick="goProxy(null, 'https://www.roblox.com')">
-        <span class="app-icon">⬜</span> Roblox
-      </div>
-    </div>
-  </div>
+/* ---------------- WEBSOCKETS ---------------- */
+wss.on("connection", (ws) => {
+  console.log("Client connected");
 
-  <!-- Sections grid -->
-  <div class="fade-up fade-up-4">
-    <div class="section-title">explore</div>
-    <div class="grid grid-3">
-      <a href="/proxy.html" class="card">
-        <div class="card-icon">🌐</div>
-        <div class="card-title">Proxy</div>
-        <div class="card-sub">Ultraviolet · browse freely</div>
-      </a>
-      <a href="/games.html" class="card">
-        <div class="card-icon">🎮</div>
-        <div class="card-title">Games</div>
-        <div class="card-sub">HTML5 · emulators · brotato</div>
-      </a>
-      <a href="/tools.html" class="card">
-        <div class="card-icon">⚙</div>
-        <div class="card-title">Tools</div>
-        <div class="card-sub">calc · notes · music · clock</div>
-      </a>
-      <a href="/chat.html" class="card">
-        <div class="card-icon">💬</div>
-        <div class="card-title">Chat</div>
-        <div class="card-sub">room codes · anonymous</div>
-      </a>
-      <a href="/settings.html" class="card">
-        <div class="card-icon">◈</div>
-        <div class="card-title">Settings</div>
-        <div class="card-sub">stealth · disguise · panic</div>
-      </a>
-      <a href="/login.html" class="card" id="admin-card">
-        <div class="card-icon">⬡</div>
-        <div class="card-title">Admin</div>
-        <div class="card-sub">moonlight · locked features</div>
-      </a>
-    </div>
-  </div>
-</main>
+  ws.on("message", (msg) => {
+    console.log("Message:", msg.toString());
+  });
 
-<button id="panic-btn" title="Panic (or press Esc twice)">✕</button>
+  ws.send("Connected to VOID server");
+});
 
-<script src="/js/main.js"></script>
-<script>
-  function goProxy(e, url) {
-    if (e) e.preventDefault();
-    const target = url || document.getElementById('search-input').value.trim();
-    if (!target) return;
-    const isUrl = target.startsWith('http') || target.includes('.');
-    const finalUrl = isUrl
-      ? (target.startsWith('http') ? target : 'https://' + target)
-      : 'https://www.google.com/search?q=' + encodeURIComponent(target);
-    window.location.href = '/proxy.html?url=' + encodeURIComponent(finalUrl);
+/* ---------------- BARE SERVER ---------------- */
+app.use((req, res) => {
+  if (bareServer.shouldRoute(req)) {
+    return bareServer.routeRequest(req, res);
+  }
+});
+
+/* ---------------- ADMIN (FIXED HASH ISSUE) ---------------- */
+// IMPORTANT: do NOT re-hash every restart in production
+const ADMIN_PASS_HASH =
+  "$2b$10$examplehashedpasswordreplacewithrealone";
+
+app.post("/login", express.json(), (req, res) => {
+  const { password } = req.body;
+
+  if (bcrypt.compareSync(password, ADMIN_PASS_HASH)) {
+    return res.json({ success: true });
   }
 
-  document.getElementById('search-btn').addEventListener('click', () => goProxy(null));
-  document.getElementById('search-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') goProxy(null);
-  });
+  res.json({ success: false });
+});
 
-  // Check admin status
-  fetch('/api/auth-status').then(r => r.json()).then(d => {
-    if (d.admin) {
-      document.getElementById('login-nav').innerHTML = '<span class="nav-icon">⬡</span> Moonlight';
-      document.getElementById('login-nav').href = '/moonlight.html';
-    }
-  });
-</script>
-</body>
-</html>
+/* ---------------- START SERVER ---------------- */
+server.listen(PORT, () => {
+  console.log(`VOID running on port ${PORT}`);
+});
