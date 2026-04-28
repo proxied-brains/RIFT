@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tools — Void</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .tools-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:768px){ .tools-layout { grid-template-columns: 1fr; } }
+
+    /* Calculator */
+    .calc { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .calc-screen { padding: 16px 20px; text-align: right; border-bottom: 1px solid var(--border); }
+    .calc-expr { font-size: 12px; color: var(--text3); font-family: var(--font-mono); min-height: 18px; }
+    .calc-val { font-size: 36px; font-weight: 700; font-family: var(--font-mono); word-break: break-all; }
+    .calc-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); }
+    .calc-btn {
+      padding: 18px; font-size: 16px; font-weight: 600; cursor: pointer;
+      background: var(--bg3); border: none; color: var(--text);
+      font-family: var(--font-display); transition: all var(--transition);
+    }
+    .calc-btn:hover { background: var(--bg4); }
+    .calc-btn.op { color: var(--accent2); }
+    .calc-btn.eq { background: var(--accent); color: #fff; }
+    .calc-btn.eq:hover { background: var(--accent2); }
+    .calc-btn.clear { color: var(--red); }
+
+    /* Notepad */
+    .notepad { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; }
+    .notepad-bar { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .notepad-bar span { font-size: 13px; font-weight: 700; flex: 1; }
+    .notepad textarea {
+      flex: 1; padding: 16px; background: transparent; border: none; outline: none;
+      color: var(--text); font-family: var(--font-mono); font-size: 13px;
+      resize: none; min-height: 280px; line-height: 1.6;
+    }
+    .notepad textarea::placeholder { color: var(--text3); }
+
+    /* Clock */
+    .clock-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; text-align: center; }
+    .clock-time { font-size: 56px; font-weight: 800; font-family: var(--font-mono); letter-spacing: -2px; color: var(--text); }
+    .clock-date { font-size: 13px; color: var(--text2); font-family: var(--font-mono); margin-top: 8px; }
+    .stopwatch-btns { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+    .sw-time { font-size: 32px; font-family: var(--font-mono); font-weight: 700; color: var(--accent2); margin: 16px 0 4px; }
+    .tabs-sm { display: flex; gap: 4px; justify-content: center; margin-bottom: 16px; }
+    .tab-sm {
+      padding: 5px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--border); background: transparent; color: var(--text2); transition: all var(--transition);
+      font-family: var(--font-display);
+    }
+    .tab-sm.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* App launcher */
+    .app-launcher { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+    .app-launcher h3 { font-size: 13px; font-weight: 700; color: var(--accent2); font-family: var(--font-mono); margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">V<span>.</span>OID</a>
+  <a href="/" class="nav-link"><span class="nav-icon">⬡</span> Home</a>
+  <a href="/proxy.html" class="nav-link"><span class="nav-icon">🌐</span> Proxy</a>
+  <a href="/games.html" class="nav-link"><span class="nav-icon">🎮</span> Games</a>
+  <a href="/tools.html" class="nav-link active"><span class="nav-icon">⚙</span> Tools</a>
+  <a href="/chat.html" class="nav-link"><span class="nav-icon">💬</span> Chat</a>
+  <a href="/settings.html" class="nav-link"><span class="nav-icon">◈</span> Settings</a>
+</nav>
+
+<main class="page">
+  <div style="margin-bottom: 32px" class="fade-up">
+    <div class="hero-badge">⚙ Tools</div>
+    <h1 style="font-size:clamp(32px,5vw,56px);font-weight:800;letter-spacing:-2px;margin-top:12px">Tools<span style="color:var(--accent)">.</span></h1>
+  </div>
+
+  <!-- App launchers -->
+  <div class="section-title fade-up">quick launch</div>
+  <div class="grid fade-up" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-bottom:32px">
+    <div class="app-card" onclick="launch('https://www.youtube.com')"><span class="app-icon">▶</span>YouTube</div>
+    <div class="app-card" onclick="launch('https://www.tiktok.com')"><span class="app-icon">◐</span>TikTok</div>
+    <div class="app-card" onclick="launch('https://chatgpt.com')"><span class="app-icon">◎</span>ChatGPT</div>
+    <div class="app-card" onclick="launch('https://claude.ai')"><span class="app-icon">◈</span>Claude</div>
+    <div class="app-card" onclick="launch('https://open.spotify.com')"><span class="app-icon">♪</span>Spotify</div>
+    <div class="app-card" onclick="launch('https://music.apple.com')"><span class="app-icon">♫</span>Apple Music</div>
+    <div class="app-card" onclick="launch('https://discord.com/app')"><span class="app-icon">⬡</span>Discord</div>
+    <div class="app-card" onclick="launch('https://www.twitch.tv')"><span class="app-icon">◈</span>Twitch</div>
+    <div class="app-card" onclick="launch('https://www.reddit.com')"><span class="app-icon">◉</span>Reddit</div>
+    <div class="app-card" onclick="launch('https://www.instagram.com')"><span class="app-icon">◑</span>Instagram</div>
+    <div class="app-card" onclick="launch('https://twitter.com')"><span class="app-icon">✕</span>X</div>
+    <div class="app-card" onclick="launch('https://www.netflix.com')"><span class="app-icon">N</span>Netflix</div>
+  </div>
+
+  <div class="tools-layout fade-up">
+    <!-- Calculator -->
+    <div class="calc">
+      <div class="calc-screen">
+        <div class="calc-expr" id="calc-expr"></div>
+        <div class="calc-val" id="calc-val">0</div>
+      </div>
+      <div class="calc-btns">
+        <button class="calc-btn clear" onclick="calcClear()">C</button>
+        <button class="calc-btn op" onclick="calcOp('±')">±</button>
+        <button class="calc-btn op" onclick="calcOp('%')">%</button>
+        <button class="calc-btn op" onclick="calcOp('÷')">÷</button>
+        <button class="calc-btn" onclick="calcNum('7')">7</button>
+        <button class="calc-btn" onclick="calcNum('8')">8</button>
+        <button class="calc-btn" onclick="calcNum('9')">9</button>
+        <button class="calc-btn op" onclick="calcOp('×')">×</button>
+        <button class="calc-btn" onclick="calcNum('4')">4</button>
+        <button class="calc-btn" onclick="calcNum('5')">5</button>
+        <button class="calc-btn" onclick="calcNum('6')">6</button>
+        <button class="calc-btn op" onclick="calcOp('−')">−</button>
+        <button class="calc-btn" onclick="calcNum('1')">1</button>
+        <button class="calc-btn" onclick="calcNum('2')">2</button>
+        <button class="calc-btn" onclick="calcNum('3')">3</button>
+        <button class="calc-btn op" onclick="calcOp('+')">+</button>
+        <button class="calc-btn" onclick="calcNum('0')" style="grid-column:span 2">0</button>
+        <button class="calc-btn" onclick="calcDot()">.</button>
+        <button class="calc-btn eq" onclick="calcEq()">=</button>
+      </div>
+    </div>
+
+    <!-- Clock / Stopwatch -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="clock-card">
+        <div class="tabs-sm">
+          <button class="tab-sm active" onclick="showClock('clock',this)">Clock</button>
+          <button class="tab-sm" onclick="showClock('stopwatch',this)">Stopwatch</button>
+          <button class="tab-sm" onclick="showClock('timer',this)">Timer</button>
+        </div>
+        <!-- Clock -->
+        <div id="panel-clock">
+          <div class="clock-time" id="clock-display">00:00:00</div>
+          <div class="clock-date" id="clock-date"></div>
+        </div>
+        <!-- Stopwatch -->
+        <div id="panel-stopwatch" style="display:none">
+          <div class="sw-time" id="sw-display">00:00.00</div>
+          <div class="stopwatch-btns">
+            <button class="btn btn-primary" id="sw-start" onclick="swToggle()">Start</button>
+            <button class="btn btn-ghost" onclick="swReset()">Reset</button>
+          </div>
+        </div>
+        <!-- Timer -->
+        <div id="panel-timer" style="display:none">
+          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
+            <input class="input" id="timer-min" type="number" placeholder="min" min="0" style="width:80px;text-align:center"/>
+            <input class="input" id="timer-sec" type="number" placeholder="sec" min="0" max="59" style="width:80px;text-align:center"/>
+          </div>
+          <div class="sw-time" id="timer-display">00:00</div>
+          <div class="stopwatch-btns">
+            <button class="btn btn-primary" id="timer-start" onclick="timerToggle()">Start</button>
+            <button class="btn btn-ghost" onclick="timerReset()">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notepad -->
+  <div class="section-title fade-up" style="margin-top:32px">notepad</div>
+  <div class="notepad fade-up" style="margin-bottom:24px">
+    <div class="notepad-bar">
+      <span>📝 Notepad</span>
+      <button class="btn btn-ghost btn-sm" onclick="copyNote()">Copy</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearNote()">Clear</button>
+      <button class="btn btn-ghost btn-sm" onclick="downloadNote()">Save</button>
+    </div>
+    <textarea id="notepad-area" placeholder="Start typing... your notes are saved locally."></textarea>
+  </div>
+</main>
+
+<button id="panic-btn">✕</button>
+<script src="/js/main.js"></script>
+<script>
+  function launch(url) {
+    window.location.href = '/proxy.html?url=' + encodeURIComponent(url);
+  }
+
+  // ── Calculator ────────────────────────────────────────────────
+  let calcState = { val: '0', expr: '', op: null, reset: false };
+  const vEl = () => document.getElementById('calc-val');
+  const eEl = () => document.getElementById('calc-expr');
+  function calcNum(n) {
+    if (calcState.reset) { calcState.val = n; calcState.reset = false; }
+    else calcState.val = calcState.val === '0' ? n : calcState.val + n;
+    vEl().textContent = calcState.val;
+  }
+  function calcDot() {
+    if (!calcState.val.includes('.')) { calcState.val += '.'; vEl().textContent = calcState.val; }
+  }
+  function calcOp(op) {
+    calcState.expr = calcState.val + ' ' + op;
+    eEl().textContent = calcState.expr;
+    calcState.op = op; calcState.prev = parseFloat(calcState.val); calcState.reset = true;
+  }
+  function calcEq() {
+    if (!calcState.op) return;
+    const a = calcState.prev, b = parseFloat(calcState.val);
+    const ops = { '+': a+b, '−': a-b, '×': a*b, '÷': b !== 0 ? a/b : 'Error', '%': a%b };
+    const result = ops[calcState.op] ?? b;
+    eEl().textContent = calcState.expr + ' ' + calcState.val + ' =';
+    calcState.val = String(parseFloat(result.toFixed(10)));
+    vEl().textContent = calcState.val;
+    calcState.op = null; calcState.reset = true;
+  }
+  function calcClear() {
+    calcState = { val: '0', expr: '', op: null, reset: false };
+    vEl().textContent = '0'; eEl().textContent = '';
+  }
+
+  // ── Clock ──────────────────────────────────────────────────────
+  function tickClock() {
+    const now = new Date();
+    document.getElementById('clock-display').textContent =
+      now.toLocaleTimeString('en-US', { hour12: false });
+    document.getElementById('clock-date').textContent =
+      now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  }
+  setInterval(tickClock, 1000); tickClock();
+
+  function showClock(panel, el) {
+    ['clock','stopwatch','timer'].forEach(p => {
+      document.getElementById('panel-' + p).style.display = p === panel ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab-sm').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // ── Stopwatch ──────────────────────────────────────────────────
+  let swRunning = false, swMs = 0, swInterval = null;
+  function swToggle() {
+    swRunning = !swRunning;
+    document.getElementById('sw-start').textContent = swRunning ? 'Stop' : 'Start';
+    if (swRunning) swInterval = setInterval(() => {
+      swMs += 10;
+      const m = Math.floor(swMs/60000), s = Math.floor((swMs%60000)/1000), ms = Math.floor((swMs%1000)/10);
+      document.getElementById('sw-display').textContent =
+        String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0') + '.' + String(ms).padStart(2,'0');
+    }, 10);
+    else clearInterval(swInterval);
+  }
+  function swReset() { clearInterval(swInterval); swRunning=false; swMs=0; document.getElementById('sw-display').textContent='00:00.00'; document.getElementById('sw-start').textContent='Start'; }
+
+  // ── Timer ──────────────────────────────────────────────────────
+  let timerRunning = false, timerMs = 0, timerInterval = null;
+  function timerToggle() {
+    if (!timerRunning && timerMs === 0) {
+      const m = parseInt(document.getElementById('timer-min').value) || 0;
+      const s = parseInt(document.getElementById('timer-sec').value) || 0;
+      timerMs = (m * 60 + s) * 1000;
+    }
+    timerRunning = !timerRunning;
+    document.getElementById('timer-start').textContent = timerRunning ? 'Pause' : 'Resume';
+    if (timerRunning) timerInterval = setInterval(() => {
+      timerMs -= 100;
+      if (timerMs <= 0) { timerMs = 0; clearInterval(timerInterval); timerRunning = false; document.getElementById('timer-start').textContent = 'Start'; }
+      const m = Math.floor(timerMs/60000), s = Math.floor((timerMs%60000)/1000);
+      document.getElementById('timer-display').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    }, 100);
+    else clearInterval(timerInterval);
+  }
+  function timerReset() { clearInterval(timerInterval); timerRunning=false; timerMs=0; document.getElementById('timer-display').textContent='00:00'; document.getElementById('timer-start').textContent='Start'; }
+
+  // ── Notepad ────────────────────────────────────────────────────
+  const ta = document.getElementById('notepad-area');
+  ta.value = localStorage.getItem('void_notes') || '';
+  ta.addEventListener('input', () => localStorage.setItem('void_notes', ta.value));
+  function copyNote() { navigator.clipboard.writeText(ta.value); }
+  function clearNote() { if (confirm('Clear notes?')) { ta.value = ''; localStorage.removeItem('void_notes'); } }
+  function downloadNote() {
+    const a = document.createElement('a');
+    a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(ta.value);
+    a.download = 'void-notes.txt'; a.click();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat — Void</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">V<span>.</span>OID</a>
+  <a href="/" class="nav-link"><span class="nav-icon">⬡</span> Home</a>
+  <a href="/proxy.html" class="nav-link"><span class="nav-icon">🌐</span> Proxy</a>
+  <a href="/games.html" class="nav-link"><span class="nav-icon">🎮</span> Games</a>
+  <a href="/tools.html" class="nav-link"><span class="nav-icon">⚙</span> Tools</a>
+  <a href="/chat.html" class="nav-link active"><span class="nav-icon">💬</span> Chat</a>
+  <a href="/settings.html" class="nav-link"><span class="nav-icon">◈</span> Settings</a>
+</nav>
+
+<!-- Join screen -->
+<div id="join-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="width:100%;max-width:400px">
+    <div class="hero-badge" style="margin-bottom:16px">💬 Void Chat</div>
+    <h2 style="font-size:32px;font-weight:800;letter-spacing:-1px;margin-bottom:8px">Join a Room</h2>
+    <p style="font-size:13px;color:var(--text2);font-family:var(--font-mono);margin-bottom:28px">// no account needed · anonymous · room codes</p>
+
+    <div class="form-group">
+      <label class="form-label">Your Name</label>
+      <input class="input" id="join-name" placeholder="Enter a name or alias..." maxlength="24" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Room Code</label>
+      <div style="display:flex;gap:8px">
+        <input class="input" id="join-room" placeholder="Enter code or leave blank for general" maxlength="20" />
+        <button class="btn btn-ghost" onclick="genCode()" title="Generate random code">⟳</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-top:6px">
+        Share the room code with friends to link your sessions
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="joinRoom()">
+      Join Room →
+    </button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="joinRoom('general')">
+      Join General Chat
+    </button>
+  </div>
+</div>
+
+<!-- Chat screen -->
+<div id="chat-screen" style="display:none;padding-top:var(--nav-h)">
+  <div style="padding:0 24px;height:calc(100vh - var(--nav-h));display:flex;flex-direction:column;gap:12px;padding-top:16px;padding-bottom:16px;max-width:900px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+      <button class="btn btn-ghost btn-sm" onclick="leaveRoom()">← Leave</button>
+      <div style="font-size:14px;font-weight:700">Room: <span id="room-display" style="color:var(--accent2);font-family:var(--font-mono)"></span></div>
+      <div style="font-size:12px;color:var(--text3);font-family:var(--font-mono)" id="chat-status">connecting...</div>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="copyRoomCode()" title="Copy room code">⧉ Copy Code</button>
+    </div>
+
+    <div class="chat-wrap" style="flex:1;min-height:0">
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <input class="input" id="chat-input" placeholder="Message..." maxlength="500" />
+        <button class="btn btn-primary" onclick="sendMsg()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button id="panic-btn">✕</button>
+<script src="/js/main.js"></script>
+<script>
+  let ws = null, myName = '', myRoom = '';
+
+  function genCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    document.getElementById('join-room').value = code;
+  }
+
+  function joinRoom(forceRoom) {
+    myName = document.getElementById('join-name').value.trim() || 'Anonymous' + Math.floor(Math.random()*999);
+    myRoom = forceRoom || document.getElementById('join-room').value.trim() || 'general';
+
+    document.getElementById('join-screen').style.display = 'none';
+    document.getElementById('chat-screen').style.display = 'block';
+    document.getElementById('room-display').textContent = myRoom;
+
+    connectWS();
+  }
+
+  function connectWS() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    ws = new WebSocket(`${proto}://${location.host}/chat-ws?room=${encodeURIComponent(myRoom)}&name=${encodeURIComponent(myName)}`);
+
+    ws.onopen = () => { document.getElementById('chat-status').textContent = '● connected'; document.getElementById('chat-status').style.color = 'var(--green)'; };
+    ws.onclose = () => { document.getElementById('chat-status').textContent = '○ disconnected'; document.getElementById('chat-status').style.color = 'var(--red)'; };
+
+    ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      appendMsg(msg);
+    };
+  }
+
+  function appendMsg(msg) {
+    const container = document.getElementById('chat-messages');
+    const el = document.createElement('div');
+
+    if (msg.type === 'system') {
+      el.className = 'chat-system';
+      el.textContent = msg.text;
+    } else {
+      const isOwn = msg.name === myName;
+      el.className = 'chat-msg' + (isOwn ? ' own' : '');
+      const initials = msg.name.slice(0,2).toUpperCase();
+      const hue = [...msg.name].reduce((a,c) => a + c.charCodeAt(0), 0) % 360;
+      el.innerHTML = `
+        <div class="chat-avatar" style="background:hsl(${hue},60%,45%)">${initials}</div>
+        <div>
+          ${!isOwn ? `<div class="chat-name">${msg.name}</div>` : ''}
+          <div class="chat-bubble">${escHtml(msg.text)}</div>
+        </div>`;
+    }
+
+    container.appendChild(el);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function sendMsg() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text || !ws || ws.readyState !== 1) return;
+    ws.send(JSON.stringify({ text }));
+    // Show own message immediately
+    appendMsg({ type: 'message', name: myName, text });
+    input.value = '';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('chat-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+    });
+  });
+
+  function leaveRoom() {
+    if (ws) ws.close();
+    document.getElementById('chat-screen').style.display = 'none';
+    document.getElementById('join-screen').style.display = 'flex';
+    document.getElementById('chat-messages').innerHTML = '';
+  }
+
+  function copyRoomCode() {
+    navigator.clipboard.writeText(myRoom);
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

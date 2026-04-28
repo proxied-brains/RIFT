@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Games — Void</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .game-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: all var(--transition);
+      cursor: pointer;
+      position: relative;
+    }
+    .game-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 32px rgba(124,92,252,0.15); }
+    .game-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: var(--bg4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      position: relative;
+    }
+    .game-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .game-play-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity var(--transition);
+      font-size: 40px;
+    }
+    .game-card:hover .game-play-overlay { opacity: 1; }
+    .game-info { padding: 14px; }
+    .game-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .game-meta { font-size: 11px; color: var(--text3); font-family: var(--font-mono); display: flex; gap: 8px; }
+    .game-badge { padding: 2px 6px; border-radius: 4px; background: var(--bg4); }
+
+    /* Full screen game viewer */
+    .game-viewer {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 150;
+      flex-direction: column;
+    }
+    .game-viewer.open { display: flex; }
+    .game-viewer-bar {
+      height: 44px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .game-viewer-title { font-size: 14px; font-weight: 700; flex: 1; }
+    .game-viewer iframe, .game-viewer #emu-container {
+      flex: 1;
+      width: 100%;
+      border: none;
+    }
+    #emu-container { background: #000; display: flex; align-items: center; justify-content: center; }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; }
+    .tab {
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      transition: all var(--transition);
+      font-family: var(--font-display);
+    }
+    .tab.active, .tab:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">V<span>.</span>OID</a>
+  <a href="/" class="nav-link"><span class="nav-icon">⬡</span> Home</a>
+  <a href="/proxy.html" class="nav-link"><span class="nav-icon">🌐</span> Proxy</a>
+  <a href="/games.html" class="nav-link active"><span class="nav-icon">🎮</span> Games</a>
+  <a href="/tools.html" class="nav-link"><span class="nav-icon">⚙</span> Tools</a>
+  <a href="/chat.html" class="nav-link"><span class="nav-icon">💬</span> Chat</a>
+  <a href="/settings.html" class="nav-link"><span class="nav-icon">◈</span> Settings</a>
+</nav>
+
+<!-- Game viewer overlay -->
+<div class="game-viewer" id="game-viewer">
+  <div class="game-viewer-bar">
+    <button class="btn btn-ghost btn-sm" onclick="closeGame()">← Back</button>
+    <span class="game-viewer-title" id="viewer-title">Game</span>
+    <button class="btn btn-ghost btn-sm" onclick="fullscreenGame()">⛶ Fullscreen</button>
+  </div>
+  <iframe id="game-frame" allowfullscreen></iframe>
+</div>
+
+<main class="page">
+  <div class="hero fade-up" style="padding: 40px 0 32px; text-align:left">
+    <div class="hero-badge">🎮 Games Hub</div>
+    <h1 style="font-size:clamp(36px,5vw,64px)">Play<span class="acc">.</span></h1>
+    <p class="hero-sub" style="text-align:left">// HTML5 · emulators · unblocked</p>
+  </div>
+
+  <div class="tabs fade-up">
+    <button class="tab active" onclick="switchTab('all', this)">All</button>
+    <button class="tab" onclick="switchTab('html5', this)">HTML5</button>
+    <button class="tab" onclick="switchTab('emulator', this)">Emulators</button>
+    <button class="tab" onclick="switchTab('featured', this)">Featured</button>
+  </div>
+
+  <div class="section-title fade-up">featured</div>
+  <div class="grid grid-4 fade-up" id="games-grid">
+
+    <!-- FEATURED -->
+    <div class="game-card" data-cat="featured html5" onclick="openGame('Brotato', 'https://brotato.wiki.spjix.com/', '🥔')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #1a0a2e, #2d1b4e)">
+        <span>🥔</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">Brotato</div>
+        <div class="game-meta"><span class="game-badge">HTML5</span><span class="game-badge">Featured</span></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-cat="emulator featured" onclick="openEmu('Super Mario 64', 'https://supermario64.me/')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #1a3a1a, #0f2a0f)">
+        <span>⭐</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">Super Mario 64</div>
+        <div class="game-meta"><span class="game-badge">N64</span><span class="game-badge">Featured</span></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-cat="html5" onclick="openGame('Slope', 'https://slope-game.github.io/', '🎿')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #0a1a3a, #0f2a4e)">
+        <span>🎿</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">Slope</div>
+        <div class="game-meta"><span class="game-badge">HTML5</span></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-cat="html5" onclick="openGame('1v1.LOL', 'https://1v1.lol/', '🔫')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #1a1a0a, #2a2a0f)">
+        <span>🔫</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">1v1.LOL</div>
+        <div class="game-meta"><span class="game-badge">HTML5</span></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-cat="html5" onclick="openGame('Cookie Clicker', 'https://orteil.dashnet.org/cookieclicker/', '🍪')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #2a1a0a, #3a2a0f)">
+        <span>🍪</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">Cookie Clicker</div>
+        <div class="game-meta"><span class="game-badge">HTML5</span></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-cat="html5" onclick="openGame('2048', 'https://play2048.co/', '🔢')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #0a2a1a, #0f3a2a)">
+        <span>🔢</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">2048</div>
+        <div class="game-meta"><span class="game-badge">HTML5</span></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-cat="html5" onclick="openGame('Drift Boss', 'https://www.coolmathgames.com/0-drift-boss', '🚗')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #2a0a1a, #3a0f2a)">
+        <span>🚗</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">Drift Boss</div>
+        <div class="game-meta"><span class="game-badge">HTML5</span></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-cat="emulator" onclick="openEmu('GBA Emulator', 'https://gba.js.org/')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #1a0a2a, #2a0f3a)">
+        <span>🎮</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">GBA Emulator</div>
+        <div class="game-meta"><span class="game-badge">GBA</span><span class="game-badge">Load ROM</span></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-cat="emulator" onclick="openEmu('NDS Emulator', 'https://ds.js.org/')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #0a1a2a, #0f2a3a)">
+        <span>📱</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">Nintendo DS</div>
+        <div class="game-meta"><span class="game-badge">NDS</span><span class="game-badge">Load ROM</span></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-cat="html5" onclick="openGame('Retro Bowl', 'https://retrobowl.me/', '🏈')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #2a1a0a, #3a2a15)">
+        <span>🏈</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">Retro Bowl</div>
+        <div class="game-meta"><span class="game-badge">HTML5</span></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-cat="html5" onclick="openGame('Minecraft Classic', 'https://classic.minecraft.net/', '⬜')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #0a2a0a, #153a15)">
+        <span>⬜</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">Minecraft Classic</div>
+        <div class="game-meta"><span class="game-badge">HTML5</span></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-cat="html5" onclick="openGame('Subway Surfers', 'https://poki.com/en/g/subway-surfers', '🏃')">
+      <div class="game-thumb" style="background: linear-gradient(135deg, #1a2a0a, #2a3a15)">
+        <span>🏃</span>
+        <div class="game-play-overlay">▶</div>
+      </div>
+      <div class="game-info">
+        <div class="game-title">Subway Surfers</div>
+        <div class="game-meta"><span class="game-badge">HTML5</span></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<button id="panic-btn" title="Panic">✕</button>
+<script src="/js/main.js"></script>
+<script>
+  function openGame(title, url, icon) {
+    document.getElementById('viewer-title').textContent = title;
+    document.getElementById('game-frame').src = url;
+    document.getElementById('game-viewer').classList.add('open');
+  }
+  function openEmu(title, url) { openGame(title, url, '🎮'); }
+  function closeGame() {
+    document.getElementById('game-viewer').classList.remove('open');
+    document.getElementById('game-frame').src = '';
+  }
+  function fullscreenGame() {
+    document.getElementById('game-frame').requestFullscreen?.();
+  }
+  function switchTab(cat, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.game-card').forEach(card => {
+      const cats = card.dataset.cat || '';
+      card.style.display = (cat === 'all' || cats.includes(cat)) ? 'block' : 'none';
+    });
+  }
+</script>
+</body>
+</html>

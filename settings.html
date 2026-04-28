@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Void</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .disguise-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 14px; }
+    .disguise-btn {
+      padding: 14px 12px; border-radius: var(--radius); border: 1px solid var(--border);
+      background: var(--bg3); color: var(--text2); font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all var(--transition); font-family: var(--font-display);
+      text-align: center;
+    }
+    .disguise-btn:hover { border-color: var(--accent); color: var(--text); background: var(--accent-glow); }
+    .disguise-btn.active { border-color: var(--accent); background: var(--accent-glow); color: var(--accent2); }
+    .disguise-icon { font-size: 20px; display: block; margin-bottom: 6px; }
+    .flood-progress { height: 4px; background: var(--bg4); border-radius: 100px; margin-top: 8px; overflow: hidden; }
+    .flood-bar { height: 100%; width: 0%; background: var(--green); border-radius: 100px; transition: width 0.1s; }
+    .key-badge {
+      display: inline-flex; align-items: center; padding: 4px 10px;
+      background: var(--bg4); border: 1px solid var(--border);
+      border-radius: var(--radius); font-family: var(--font-mono); font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">V<span>.</span>OID</a>
+  <a href="/" class="nav-link"><span class="nav-icon">⬡</span> Home</a>
+  <a href="/proxy.html" class="nav-link"><span class="nav-icon">🌐</span> Proxy</a>
+  <a href="/games.html" class="nav-link"><span class="nav-icon">🎮</span> Games</a>
+  <a href="/tools.html" class="nav-link"><span class="nav-icon">⚙</span> Tools</a>
+  <a href="/chat.html" class="nav-link"><span class="nav-icon">💬</span> Chat</a>
+  <a href="/settings.html" class="nav-link active"><span class="nav-icon">◈</span> Settings</a>
+</nav>
+
+<main class="page" style="max-width:760px">
+  <div style="margin-bottom:32px" class="fade-up">
+    <div class="hero-badge">◈ Settings</div>
+    <h1 style="font-size:clamp(32px,5vw,56px);font-weight:800;letter-spacing:-2px;margin-top:12px">Settings<span style="color:var(--accent)">.</span></h1>
+  </div>
+
+  <!-- Stealth meter -->
+  <div class="settings-section fade-up">
+    <div class="settings-section-title">◈ Stealth Level</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:13px;color:var(--text2)">Overall stealth score</span>
+      <span style="font-size:20px;font-weight:800;font-family:var(--font-mono);color:var(--accent2)" id="stealth-label">0%</span>
+    </div>
+    <div class="meter-track">
+      <div class="meter-fill" id="stealth-fill" style="width:0%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-top:6px">
+      <span>exposed</span><span>low key</span><span>invisible</span>
+    </div>
+  </div>
+
+  <!-- Disguise mode -->
+  <div class="settings-section fade-up">
+    <div class="settings-section-title">🎭 Disguise Mode</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:4px">Make this tab look like a legit school site. Changes the tab title and favicon.</p>
+    <div class="disguise-grid" id="disguise-grid">
+      <button class="disguise-btn active" data-mode="none" onclick="setDisguise('none',this)">
+        <span class="disguise-icon">⬡</span> None (Void)
+      </button>
+      <button class="disguise-btn" data-mode="google_classroom" onclick="setDisguise('google_classroom',this)">
+        <span class="disguise-icon">📚</span> Google Classroom
+      </button>
+      <button class="disguise-btn" data-mode="ixl" onclick="setDisguise('ixl',this)">
+        <span class="disguise-icon">📊</span> IXL Learning
+      </button>
+      <button class="disguise-btn" data-mode="iready" onclick="setDisguise('iready',this)">
+        <span class="disguise-icon">📖</span> i-Ready
+      </button>
+      <button class="disguise-btn" data-mode="khanacademy" onclick="setDisguise('khanacademy',this)">
+        <span class="disguise-icon">🌍</span> Khan Academy
+      </button>
+      <button class="disguise-btn" data-mode="quizlet" onclick="setDisguise('quizlet',this)">
+        <span class="disguise-icon">🃏</span> Quizlet
+      </button>
+    </div>
+  </div>
+
+  <!-- Cloaking -->
+  <div class="settings-section fade-up">
+    <div class="settings-section-title">⧉ About:Blank Cloaking</div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Enable cloaking</div>
+        <div class="toggle-sub">Opens proxy in about:blank tab — harder to detect in browser history</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="cloak-toggle" onchange="saveSetting('void_cloak', this.checked ? '1' : '0')"/>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="testCloak()">⧉ Test Cloaking</button>
+  </div>
+
+  <!-- Panic key -->
+  <div class="settings-section fade-up">
+    <div class="settings-section-title">⚡ Panic Key</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Press your panic key twice to instantly navigate away.</p>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Current panic key</div>
+        <div style="margin-top:6px"><span class="key-badge" id="panic-key-display">Escape</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="setPanicKey()">Change</button>
+    </div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Panic destination</div>
+        <div class="toggle-sub">Where to go when panic key is pressed</div>
+      </div>
+      <select class="input" style="width:200px" id="panic-dest" onchange="saveSetting('void_panic_target', this.value)">
+        <option value="https://classroom.google.com">Google Classroom</option>
+        <option value="https://www.ixl.com">IXL</option>
+        <option value="https://www.khanacademy.org">Khan Academy</option>
+        <option value="https://quizlet.com">Quizlet</option>
+        <option value="https://www.google.com">Google</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- History flood -->
+  <div class="settings-section fade-up">
+    <div class="settings-section-title">📜 History Flood</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Floods your browser history with educational sites to hide your activity.</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="doFlood()">⚡ Flood History</button>
+      <span style="font-size:12px;color:var(--text3);font-family:var(--font-mono)" id="flood-status"></span>
+    </div>
+    <div class="flood-progress"><div class="flood-bar" id="flood-bar"></div></div>
+    <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-top:8px">
+      Adds 50 educational site entries to your browser history
+    </div>
+  </div>
+
+  <!-- Tab title override -->
+  <div class="settings-section fade-up">
+    <div class="settings-section-title">🏷 Custom Tab Title</div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <input class="input" id="custom-title" placeholder="Custom tab title..." />
+      <button class="btn btn-primary" onclick="setCustomTitle()">Set</button>
+      <button class="btn btn-ghost" onclick="clearCustomTitle()">Reset</button>
+    </div>
+  </div>
+
+</main>
+
+<button id="panic-btn">✕</button>
+<script src="/js/main.js"></script>
+<script>
+  // Load saved settings
+  document.addEventListener('DOMContentLoaded', () => {
+    const cloak = localStorage.getItem('void_cloak') === '1';
+    document.getElementById('cloak-toggle').checked = cloak;
+
+    const panicKey = localStorage.getItem('void_panic_key') || 'Escape';
+    document.getElementById('panic-key-display').textContent = panicKey;
+
+    const dest = localStorage.getItem('void_panic_target') || 'https://classroom.google.com';
+    document.getElementById('panic-dest').value = dest;
+
+    const saved = localStorage.getItem('void_disguise') || 'none';
+    document.querySelectorAll('.disguise-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === saved);
+    });
+
+    window.VoidUtils.updateStealthMeter();
+  });
+
+  function saveSetting(key, val) {
+    localStorage.setItem(key, val);
+    window.VoidUtils.updateStealthMeter();
+  }
+
+  function setDisguise(mode, btn) {
+    window.VoidUtils.applyDisguise(mode);
+    document.querySelectorAll('.disguise-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    window.VoidUtils.updateStealthMeter();
+  }
+
+  function setPanicKey() {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:999';
+    modal.innerHTML = `
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:32px;text-align:center;width:300px">
+        <h3 style="margin-bottom:12px">Press any key...</h3>
+        <p style="font-size:13px;color:var(--text2);font-family:var(--font-mono)">Waiting for keypress</p>
+      </div>`;
+    document.body.appendChild(modal);
+    document.addEventListener('keydown', function handler(e) {
+      e.preventDefault();
+      localStorage.setItem('void_panic_key', e.key);
+      document.getElementById('panic-key-display').textContent = e.key;
+      document.body.removeChild(modal);
+      document.removeEventListener('keydown', handler);
+      window.VoidUtils.updateStealthMeter();
+    });
+  }
+
+  function testCloak() {
+    window.VoidUtils.openCloaked(window.location.href);
+  }
+
+  function doFlood() {
+    const bar = document.getElementById('flood-bar');
+    const status = document.getElementById('flood-status');
+    let i = 0; const total = 50;
+    status.textContent = 'flooding...';
+    const iv = setInterval(() => {
+      if (i >= total) { clearInterval(iv); status.textContent = 'done! ' + total + ' entries added'; bar.style.width = '0%'; return; }
+      window.VoidUtils.floodHistory(1);
+      i++; bar.style.width = (i/total*100) + '%';
+    }, 60);
+    saveSetting('void_flood', '1');
+  }
+
+  function setCustomTitle() {
+    const val = document.getElementById('custom-title').value.trim();
+    if (val) { document.title = val; localStorage.setItem('void_custom_title', val); }
+  }
+  function clearCustomTitle() {
+    localStorage.removeItem('void_custom_title');
+    document.title = 'Settings — Void';
+    document.getElementById('custom-title').value = '';
+  }
+</script>
+</body>
+</html>

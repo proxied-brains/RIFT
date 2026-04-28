@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proxy — Void</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body { overflow: hidden; }
+    .proxy-landing {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .proxy-landing h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .proxy-landing p { color: var(--text2); font-family: var(--font-mono); font-size: 13px; margin-bottom: 28px; }
+    .proxy-input-wrap { display: flex; gap: 10px; width: 100%; max-width: 560px; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">V<span>.</span>OID</a>
+  <a href="/" class="nav-link"><span class="nav-icon">⬡</span> Home</a>
+  <a href="/proxy.html" class="nav-link active"><span class="nav-icon">🌐</span> Proxy</a>
+  <a href="/games.html" class="nav-link"><span class="nav-icon">🎮</span> Games</a>
+  <a href="/tools.html" class="nav-link"><span class="nav-icon">⚙</span> Tools</a>
+  <a href="/chat.html" class="nav-link"><span class="nav-icon">💬</span> Chat</a>
+  <a href="/settings.html" class="nav-link"><span class="nav-icon">◈</span> Settings</a>
+</nav>
+
+<!-- Address bar (shown when proxy is active) -->
+<div class="iframe-bar" id="proxy-bar" style="display:none">
+  <a href="/" class="btn btn-ghost btn-sm">← Back</a>
+  <input class="iframe-url" id="addr-bar" placeholder="Enter URL..." />
+  <button class="btn btn-primary btn-sm" id="go-btn">Go</button>
+  <button class="btn btn-ghost btn-sm" id="cloak-btn" title="Open in about:blank">⧉</button>
+  <button class="btn btn-ghost btn-sm" id="reload-btn">↺</button>
+</div>
+
+<!-- Proxy iframe -->
+<iframe id="proxy-frame" style="display:none" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"></iframe>
+
+<!-- Landing (shown when no URL) -->
+<div class="proxy-landing" id="proxy-landing">
+  <div class="hero-badge" style="margin-bottom:16px">🌐 Ultraviolet Proxy</div>
+  <h2>Browse <span style="color:var(--accent)">Freely</span></h2>
+  <p>// powered by Ultraviolet · your traffic stays private</p>
+  <div class="proxy-input-wrap">
+    <input class="input" id="url-input" placeholder="Enter a URL or search..." autocomplete="off" />
+    <button class="btn btn-primary" id="launch-btn">Launch →</button>
+  </div>
+  <div style="margin-top: 16px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center">
+    <button class="btn btn-ghost btn-sm" onclick="loadProxy('https://www.google.com')">Google</button>
+    <button class="btn btn-ghost btn-sm" onclick="loadProxy('https://www.youtube.com')">YouTube</button>
+    <button class="btn btn-ghost btn-sm" onclick="loadProxy('https://chatgpt.com')">ChatGPT</button>
+    <button class="btn btn-ghost btn-sm" onclick="loadProxy('https://discord.com/app')">Discord</button>
+    <button class="btn btn-ghost btn-sm" onclick="loadProxy('https://open.spotify.com')">Spotify</button>
+    <button class="btn btn-ghost btn-sm" onclick="loadProxy('https://www.reddit.com')">Reddit</button>
+  </div>
+</div>
+
+<button id="panic-btn" title="Panic">✕</button>
+
+<script src="/js/main.js"></script>
+<script>
+  // UV service worker registration
+  async function registerSW() {
+    if ('serviceWorker' in navigator) {
+      try {
+        await navigator.serviceWorker.register('/uv/sw.js', { scope: '/service/' });
+        console.log('[Void] SW registered');
+      } catch (e) {
+        console.warn('[Void] SW failed:', e);
+      }
+    }
+  }
+
+  function encodeUrl(url) {
+    return '/service/' + __uv$config.encodeUrl(url);
+  }
+
+  function loadProxy(rawUrl) {
+    if (!rawUrl) rawUrl = document.getElementById('url-input')?.value.trim() || '';
+    if (!rawUrl) return;
+    const isUrl = rawUrl.startsWith('http') || rawUrl.includes('.');
+    const url = isUrl
+      ? (rawUrl.startsWith('http') ? rawUrl : 'https://' + rawUrl)
+      : 'https://www.google.com/search?q=' + encodeURIComponent(rawUrl);
+
+    document.getElementById('proxy-landing').style.display = 'none';
+    document.getElementById('proxy-bar').style.display = 'flex';
+    const frame = document.getElementById('proxy-frame');
+    frame.style.display = 'block';
+    document.getElementById('addr-bar').value = url;
+
+    frame.src = encodeUrl(url);
+  }
+
+  document.getElementById('launch-btn')?.addEventListener('click', () => loadProxy());
+  document.getElementById('url-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') loadProxy(); });
+  document.getElementById('go-btn')?.addEventListener('click', () => {
+    loadProxy(document.getElementById('addr-bar').value);
+  });
+  document.getElementById('addr-bar')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') loadProxy(document.getElementById('addr-bar').value);
+  });
+  document.getElementById('reload-btn')?.addEventListener('click', () => {
+    const frame = document.getElementById('proxy-frame');
+    frame.src = frame.src;
+  });
+  document.getElementById('cloak-btn')?.addEventListener('click', () => {
+    const url = document.getElementById('addr-bar').value;
+    window.VoidUtils.openCloaked('/proxy.html?url=' + encodeURIComponent(url));
+  });
+
+  // Load UV config then check for ?url param
+  const uvScript = document.createElement('script');
+  uvScript.src = '/uv/uv.config.js';
+  uvScript.onload = async () => {
+    await registerSW();
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get('url');
+    if (url) loadProxy(url);
+  };
+  document.head.appendChild(uvScript);
+</script>
+</body>
+</html>

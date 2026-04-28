@@ -1,0 +1,20 @@
+{
+  "name": "void",
+  "version": "1.0.0",
+  "description": "Void — your space, your rules",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@tomphttp/bare-server-node": "^2.0.3",
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "bcryptjs": "^2.4.3",
+    "express-session": "^1.18.0",
+    "ws": "^8.17.0",
+    "uuid": "^9.0.0"
+  }
+}
