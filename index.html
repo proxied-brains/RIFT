@@ -1,58 +1,319 @@
-import express from "express";
-import http from "http";
-import path from "path";
-import { WebSocketServer } from "ws";
-import bcrypt from "bcryptjs";
-import { createBareServer } from "@tomphttp/bare-server-node";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Rift</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-const app = express();
-const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
-const bareServer = createBareServer("/bare/");
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;overflow:hidden}
 
-const PORT = process.env.PORT || 8080;
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      position: relative;
+    }
 
-/* ---------------- STATIC FILES ---------------- */
-app.use(express.static(path.join(process.cwd(), "public")));
+    /* ── Starfield canvas ── */
+    #stars { position: fixed; inset: 0; z-index: 0; }
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "public", "index.html"));
-});
+    /* ── Galaxy BG ── */
+    .galaxy-bg {
+      position: fixed;
+      inset: 0;
+      background: url('/bg.jpg') center/cover no-repeat;
+      opacity: 0.18;
+      z-index: 1;
+    }
 
-/* ---------------- WEBSOCKETS ---------------- */
-wss.on("connection", (ws) => {
-  console.log("Client connected");
+    /* ── Content ── */
+    .content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      width: 100%;
+      padding: 0 20px;
+      text-align: center;
+    }
 
-  ws.on("message", (msg) => {
-    console.log("Message:", msg.toString());
+    /* ── Title ── */
+    .title {
+      font-size: clamp(36px, 7vw, 72px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 36px;
+      color: #fff;
+    }
+
+    /* ── Search bar ── */
+    .search-wrap {
+      width: 100%;
+      max-width: 560px;
+      position: relative;
+      margin-bottom: 22px;
+    }
+    .search-bar {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 14px 48px 14px 18px;
+      font-size: 14px;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.15s;
+    }
+    .search-bar::placeholder { color: rgba(255,255,255,0.3); }
+    .search-bar:focus { border-color: rgba(255,255,255,0.25); }
+    .search-icon {
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255,255,255,0.35);
+      font-size: 16px;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .search-icon:hover { color: #fff; }
+
+    /* ── Meta links ── */
+    .meta-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .meta-links a {
+      color: rgba(255,255,255,0.3);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .meta-links a:hover { color: rgba(255,255,255,0.7); }
+    .meta-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+    .tag-red { background: rgba(255,60,60,0.25); color: rgba(255,120,120,0.9); border: 1px solid rgba(255,60,60,0.3); }
+    .tag-blue { background: rgba(60,100,255,0.25); color: rgba(120,160,255,0.9); border: 1px solid rgba(60,100,255,0.3); }
+
+    /* ── Bottom dock ── */
+    .dock {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(18,18,20,0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 10px 14px;
+    }
+    .dock-btn {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      border: none;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.5);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      text-decoration: none;
+      position: relative;
+    }
+    .dock-btn:hover {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      transform: translateY(-3px);
+    }
+    .dock-btn.active {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+    .dock-btn.red-active { background: rgba(220,50,50,0.3); color: #ff6b6b; }
+    .dock-sep { width: 1px; height: 28px; background: rgba(255,255,255,0.08); margin: 0 2px; }
+
+    /* ── Tooltip ── */
+    .dock-btn::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .dock-btn:hover::after { opacity: 1; }
+
+    /* ── Admin badge ── */
+    .admin-badge {
+      position: fixed;
+      top: 18px; right: 18px;
+      z-index: 20;
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(18,18,20,0.8);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      transition: all 0.15s;
+      backdrop-filter: blur(12px);
+    }
+    .admin-badge:hover { color: #fff; border-color: rgba(255,255,255,0.2); }
+
+    /* ── Panic btn ── */
+    #panic-btn {
+      position: fixed;
+      top: 18px; left: 18px;
+      z-index: 20;
+      width: 36px; height: 36px;
+      background: rgba(18,18,20,0.8);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.3);
+      transition: all 0.15s;
+      backdrop-filter: blur(12px);
+    }
+    #panic-btn:hover { background: rgba(200,40,40,0.4); border-color: rgba(200,40,40,0.5); color: #fff; }
+  </style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+<div class="galaxy-bg"></div>
+
+<button id="panic-btn" title="Panic (Esc x2)">✕</button>
+<a href="/login.html" class="admin-badge" id="admin-link">⬡ Admin</a>
+
+<div class="content">
+  <h1 class="title">Rift</h1>
+
+  <div class="search-wrap">
+    <input class="search-bar" id="s" placeholder="Search for Games/Apps..." autocomplete="off">
+    <span class="search-icon" onclick="search()">⌕</span>
+  </div>
+
+  <div class="meta-links">
+    <a href="/settings.html">settings</a>
+    <a href="/chat.html">chat</a>
+    <a href="#" onclick="return false">blog</a>
+    <span class="meta-tag tag-red">⊘ school district service</span>
+    <span class="meta-tag tag-blue">≡ changelog</span>
+  </div>
+</div>
+
+<!-- Bottom dock -->
+<div class="dock">
+  <a href="/" class="dock-btn active" data-tip="Home">⬡</a>
+  <a href="#" class="dock-btn" data-tip="Discord" onclick="go('https://discord.com/app');return false">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.042.031.055a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+  </a>
+  <a href="/games.html" class="dock-btn" data-tip="Games">🎮</a>
+  <a href="#" class="dock-btn" data-tip="Apps" onclick="showApps();return false">⬛</a>
+  <a href="/proxy.html" class="dock-btn" data-tip="Proxy">🌐</a>
+  <a href="#" class="dock-btn" data-tip="Settings" onclick="go('https://open.spotify.com');return false">♪</a>
+  <div class="dock-sep"></div>
+  <a href="/settings.html" class="dock-btn" data-tip="Stealth">◈</a>
+  <a href="/chat.html" class="dock-btn" data-tip="Chat">💬</a>
+  <a href="#" class="dock-btn" data-tip="YouTube" onclick="go('https://www.youtube.com');return false">▶</a>
+  <a href="#" class="dock-btn" data-tip="Gems" onclick="go('https://chatgpt.com');return false">◆</a>
+  <a href="#" class="dock-btn" data-tip="Music" onclick="go('https://music.apple.com');return false">♫</a>
+  <div class="dock-sep"></div>
+  <a href="/login.html" class="dock-btn red-active" data-tip="Admin">♥</a>
+</div>
+
+<script>
+  // ── Starfield ──
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initStars(); }
+  function initStars() {
+    stars = [];
+    for (let i = 0; i < 200; i++) {
+      stars.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.2+0.2, a: Math.random(), da: (Math.random()-0.5)*0.005 });
+    }
+  }
+  function drawStars() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    stars.forEach(s => {
+      s.a = Math.max(0.05, Math.min(1, s.a + s.da));
+      if (s.a <= 0.05 || s.a >= 1) s.da *= -1;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255,255,255,${s.a})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(drawStars);
+  }
+  window.addEventListener('resize', resize);
+  resize(); drawStars();
+
+  // ── Search ──
+  function go(url) { location.href = '/proxy.html?url=' + encodeURIComponent(url); }
+  function search() {
+    const v = document.getElementById('s').value.trim();
+    if (!v) return;
+    const url = v.startsWith('http') || v.includes('.') ? (v.startsWith('http') ? v : 'https://' + v) : 'https://www.google.com/search?q=' + encodeURIComponent(v);
+    go(url);
+  }
+  document.getElementById('s').onkeydown = e => { if (e.key === 'Enter') search(); };
+
+  // ── Panic ──
+  let pc = 0, pt = null;
+  document.getElementById('panic-btn').onclick = () => location.replace(localStorage.getItem('rift_panic_target') || 'https://classroom.google.com');
+  document.addEventListener('keydown', e => {
+    if (e.key === (localStorage.getItem('rift_panic_key') || 'Escape')) {
+      pc++; clearTimeout(pt); pt = setTimeout(() => pc = 0, 600);
+      if (pc >= 2) location.replace(localStorage.getItem('rift_panic_target') || 'https://classroom.google.com');
+    }
   });
 
-  ws.send("Connected to VOID server");
-});
+  // ── Admin check ──
+  fetch('/api/auth-status').then(r=>r.json()).then(d => {
+    if (d.admin) { const l = document.getElementById('admin-link'); l.textContent = '⬡ Moonlight'; l.href = '/moonlight.html'; }
+  });
 
-/* ---------------- BARE SERVER ---------------- */
-app.use((req, res) => {
-  if (bareServer.shouldRoute(req)) {
-    return bareServer.routeRequest(req, res);
-  }
-});
-
-/* ---------------- ADMIN (FIXED HASH ISSUE) ---------------- */
-// IMPORTANT: do NOT re-hash every restart in production
-const ADMIN_PASS_HASH =
-  "$2b$10$examplehashedpasswordreplacewithrealone";
-
-app.post("/login", express.json(), (req, res) => {
-  const { password } = req.body;
-
-  if (bcrypt.compareSync(password, ADMIN_PASS_HASH)) {
-    return res.json({ success: true });
-  }
-
-  res.json({ success: false });
-});
-
-/* ---------------- START SERVER ---------------- */
-server.listen(PORT, () => {
-  console.log(`VOID running on port ${PORT}`);
-});
+  function showApps() { location.href = '/tools.html'; }
+</script>
+</body>
+</html>
