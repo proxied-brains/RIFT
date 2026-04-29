@@ -4,7 +4,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import session from 'express-session';
-import { createServer as createWsServer, WebSocketServer } from 'ws';
+import { WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 
